@@ -1,0 +1,44 @@
+{
+  "viewport": [
+    1440,
+    900
+  ],
+  "midpoint": {
+    "scrollTop": 450,
+    "progress": 0.5,
+    "imageTop": 245,
+    "heroGhostControls": false,
+    "caption": "从眼前的纹理， / 到你亲手养的一皿。"
+  },
+  "chapters": {
+    "discover": "reviewed: real data and controls readable; shared texture visible",
+    "create": "reviewed: shared texture visible; controls readable",
+    "horizontalOverflow": false
+  },
+  "fileLoad": {
+    "boot": true,
+    "texture": "blob:null URL resolved and computed background valid",
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  "httpConsole": {
+    "nonAppAPIs": [
+      "/ai/wr/user/pre/conf",
+      "/ai/wr/user/conf"
+    ],
+    "messages": [
+      "10031 找不到用户凭据"
+    ],
+    "unattributedPageError": "Object, no stack"
+  },
+  "previousEndpointChecks": {
+    "at900px": "visual paused; gl/fog exact same rect",
+    "at0px": "visual resumed; original transform/opacity restored",
+    "invisibleHeroControlsRemainInertAfterAIClose": true
+  },
+  "screenshots": [
+    "scroll-mid-final.png",
+    "scroll-discover-final.png",
+    "scroll-create-final.png"
+  ]
+}

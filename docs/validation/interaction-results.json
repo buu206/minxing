@@ -1,0 +1,28 @@
+{
+  "origin": "http://localhost:18886",
+  "checks": [
+    "首次进场正常结束，重播从entryZoom1.3回1，完整时长3005ms",
+    "跳过进场可用",
+    "0/25/50/75/100%及反向回滚的canvas尺寸稳定；各点gl/fog位置和尺寸相同",
+    "0.75时景观opacity0.968021、真实展台0.032；1.0时景观0、真实展台1且可交互",
+    "中途1440×900改为1024×768，画布更新1013×768；回首页尺寸正确",
+    "放大镜、萤萤AI、培养入口仍可用",
+    "离开home后motionTime不增，回来恢复",
+    "手机390×844真实touch镜片可达指定触点，触摸上滑自然滚动",
+    "手机开始探索进入观察区，gl/fog位置尺寸相同且非inert",
+    "减动态motionTime不增，breathing.amplitude=0，进场重播直接结束",
+    "减动态四区(首页/观察/图鉴/创作)主体opacity=1且非inert"
+  ],
+  "errors": [],
+  "pending": [],
+  "notes": [
+    "测试只使用独立localhost:18886存档",
+    "Tabbit仍偶报Object空栈，应用error/unhandledrejection捕获为空"
+  ],
+  "final_bytes": 5685481,
+  "final_sha256": "ede666927ebe16786272e374f2fc3ace55601fb9379c5c032d5896202a265400",
+  "screenshots": [
+    "qa/phone-final.png",
+    "qa/phone-observation.png"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "name": "minxing-colony-home",
+  "private": true,
+  "scripts": {"build": "node build.cjs ../colony.html"},
+  "devDependencies": {"esbuild": "0.25.12"}
+}

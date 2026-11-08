@@ -1,0 +1,7 @@
+<section id="homeIntro" class="home-intro" role="dialog" aria-modal="true" aria-labelledby="homeIntroTitle" aria-describedby="homeIntroDescription" data-phase="preparing" tabindex="-1">
+  <div id="homeIntroVisualMount" class="home-life-mount" aria-hidden="true"><div class="home-life-fallback"></div></div>
+  <header class="home-intro-header"><span class="home-intro-brand">皿星<span>MINXING</span></span><button id="homeIntroSkip" type="button" onclick="if(window.__homeIntro){window.__homeIntro.finish({reason:'skip'})}else{document.getElementById('homeIntro').hidden=true;document.getElementById('homeIntro').dataset.skipped='true'}">跳过动画 <span aria-hidden="true">↗</span></button></header>
+  <div class="home-intro-copy"><p class="home-intro-eyebrow">MINXING / A CLOSER LOOK</p><h1 id="homeIntroTitle">从一处细微，<span>看见生命。</span></h1><p id="homeIntroDescription">和萤萤一起，沿着菌丝走近一点</p></div>
+  <footer class="home-intro-footer"><span id="homeIntroHint">正在准备微观世界</span><div class="home-intro-track" aria-hidden="true"><i></i></div><span>萤萤，与你同在</span></footer>
+</section>
+<script>try{if(sessionStorage.getItem('minxing.home-intro.colony-c2')==='1')document.getElementById('homeIntro').hidden=true;}catch{}</script>

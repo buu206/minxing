@@ -1,0 +1,8 @@
+{
+  "snapshot_date": "2026-11-08",
+  "file": "colony.html",
+  "bytes": 5685554,
+  "sha256": "8daa5ec4dd2cb4151d151d7042dc46a7a0670a2b5eaa61aae1343da4d591f025",
+  "rebuild_matches_installed_prototype": true,
+  "scope": "Current front-end prototype; no deployed model endpoint"
+}

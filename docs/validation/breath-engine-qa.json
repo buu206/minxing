@@ -1,0 +1,31 @@
+{
+  "version": "colony-breath-d",
+  "backend": "offscreen WebGL texture pass into Canvas2D",
+  "three_second_pixels": {
+    "frontHyphae": {
+      "meanRGBDifference": 13.0932,
+      "percentChanged": 85.5895
+    },
+    "darkBackground": {
+      "meanRGBDifference": 0,
+      "percentChanged": 0
+    },
+    "basePigment": {
+      "meanRGBDifference": 0.3262,
+      "percentChanged": 3.0381
+    }
+  },
+  "verified": [
+    "desktop and mobile appearance retain original colors",
+    "entry zoom1.3 to1, same surface",
+    "pause stops paintCount and motionTime",
+    "reduced-motion amplitude0 and static time",
+    "CSS scale(.5) leaves logical render dimensions unchanged",
+    "scroll .4 disables pointer; scroll0 restores",
+    "context loss downgrades surface only, main canvas visible, page errors=[]",
+    "real magnifier samples final displaced field"
+  ],
+  "mobile_amplitude_css_pixels": 3,
+  "desktop_amplitude_css_pixels": 5.2,
+  "remaining": []
+}

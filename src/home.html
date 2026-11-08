@@ -1,0 +1,42 @@
+<section id="homePage" class="app-page" hidden>
+  <div id="homeJourney" class="home-journey">
+    <div class="home-visual-sticky" aria-hidden="true">
+    <div id="homeLifeMount" class="home-life-mount" aria-hidden="true"><div class="home-life-fallback"></div><canvas id="homeLifeCanvas"></canvas></div>
+      <div class="home-journey-caption"><small>从微距，到全貌</small><p>从眼前的纹理，<br>到你亲手养的一皿。</p></div>
+    </div>
+  <section class="home-hero" id="homeUniverse" aria-labelledby="homeUniverseTitle">
+    <div class="home-heading" tabindex="-1" data-home-intro-focus>
+      <h1 id="homeUniverseTitle"><span>把好奇，</span><span>养成生命。</span></h1>
+      <p class="home-lede">和 AI 伙伴萤萤，一起探索微观世界。</p>
+    </div>
+    <button id="homeMeetAI" class="home-yingying" type="button" data-life-focus="ask" aria-label="和萤萤 AI 对话"><span>萤萤</span></button>
+    <p class="home-life-caption sr-only"><span id="homeLifeCaption">移动鼠标，靠近菌落的生长边缘</span></p>
+    <div class="home-main-actions">
+      <section id="homeAssistantReply" hidden aria-label="萤萤 AI 对话"></section>
+      <form id="homeAssistantForm"><label class="home-input-mark" for="homeAssistantInput"><i class="home-orb" aria-hidden="true"></i><span class="sr-only">向萤萤提问</span></label><input id="homeAssistantInput" type="text" maxlength="280" autocomplete="off" placeholder="问萤萤：帮我开始第一皿"><button type="submit" class="home-send" aria-label="发送给萤萤"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button></form>
+      <div class="home-hero-actions"><button id="homeScrollExplore" type="button">开始探索 <span aria-hidden="true">↗</span></button><span class="home-action-divider" aria-hidden="true"></span><button id="homeHeroContinueBtn" type="button">开始我的第一皿</button></div>
+      <div class="home-prompt-list" hidden aria-hidden="true"><button data-home-ask="start" type="button">从哪一皿开始？</button><button data-home-ask="inspect" type="button">我的菌落怎么样了？</button><button data-home-ask="compare" type="button">换个条件会怎样？</button></div>
+      <span id="homeAIStatus" class="home-demo-note">AI 功能演示 · 未连接模型</span>
+    </div>
+    <footer class="home-hero-foot"><button id="homeReplayIntro" type="button" aria-label="重播菌落生长进场动画"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.2 7.4A8 8 0 1 1 4 15M4 3v5h5"/></svg><span>重看生长</span></button><button id="homePortalObserve" class="home-scroll-observe" type="button">向下观察 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v15M6 13l6 6 6-6"/></svg></button></footer>
+  </section>
+  <section class="home-observation" id="homeObservation" aria-labelledby="homeObservationTitle">
+    <div class="home-section-marker"><span>01</span><i></i><small>OBSERVE</small></div>
+    <div class="home-observation-copy"><p class="home-eyebrow">你的微观培养室</p><h2 id="homeObservationTitle">把好奇，<br>养在一只皿里。</h2><p class="home-section-lede">把眼前的好奇，带进真实的观察。<br>擦开皿盖，看看今天有什么不同。</p><div class="home-current-dish"><h3 id="homeContinueTitle">准备好第一只皿</h3><p id="homeContinueText"></p><p id="homeLifeResume" role="status"></p></div><div class="home-culture-actions"><button id="enterCultureBtn" class="home-primary-action" type="button">开始我的第一皿 <span aria-hidden="true">↗</span></button><button id="newCultureBtn" class="home-text-action" type="button">新建一皿</button></div><button class="home-monitor-link" type="button" data-route="monitor">查看培养数据 <span aria-hidden="true">↗</span></button></div>
+    <div class="home-observation-view"><div id="homeObservationScene"><canvas id="homeFog" aria-hidden="true"></canvas><div class="home-observation-label"><span id="homeLiveLabel" class="home-tiny-label">展示示例</span><span id="homeDishLabel">青霉 + 黑曲霉</span><small id="homeLifeFact"></small></div><span class="home-scene-hint">擦去雾气 · 拖动观察</span></div><div class="home-observation-footer"><div><p id="homeHint">擦去一点雾气，和生命打个照面。</p><button id="wipeFogBtn" type="button">擦开皿盖 ↗</button><small id="checkinState"></small></div><div class="home-timeline"><label for="homeReplay">生长回看 <output id="homeReplayTime">现在</output></label><input id="homeReplay" type="range" min="0" max="0" value="0" aria-label="回看培养皿生长过程"></div></div></div>
+  </section>
+  </div>
+  <section class="home-discover" id="homeDiscover" aria-labelledby="homeSpecimenTitle">
+    <div class="home-section-marker"><span>02</span><i></i><small>DISCOVER</small></div>
+    <div class="home-discover-heading"><div><p class="home-eyebrow">沿着刚才的纹理，认识更多生命</p><h2 id="homeSpecimenTitle">每一次靠近，<br>都有新的发现。</h2></div><div class="home-discover-summary"><span id="homeDexCount"></span><p>从颜色、边缘到生长的纹路，<br>收集属于你的微观世界。</p><button type="button" data-route="dex" class="home-text-action">打开完整图鉴 ↗</button></div></div>
+    <div class="home-collection"><button id="homeFeaturedSpecimen" class="home-featured-specimen" type="button" aria-label="在图鉴中查看青霉"><div class="home-specimen-halo"></div><img id="homeFeaturedImage" alt="青霉菌落形态"><span class="home-featured-index">SPECIMEN / 01</span><span class="home-featured-name"><strong id="homeFeaturedName">青霉</strong><em id="homeFeaturedLatin"></em></span><span class="home-featured-state" id="homeFeaturedState">待点亮</span><span class="home-featured-arrow" aria-hidden="true">↗</span></button><div class="home-collection-rail"><div class="home-rail-head"><span>一整个微观宇宙</span><div><button id="homeSpecimensPrev" type="button" aria-label="向前浏览菌种">←</button><button id="homeSpecimensNext" type="button" aria-label="向后浏览菌种">→</button></div></div><div id="homeDexWall"></div><p class="home-collection-note">记录一次发现，点亮一颗微小的星。</p></div></div>
+    <div class="home-field-notes"><div><span class="home-tiny-label">YOUR FIELD NOTES</span><h3>你发现的，值得记住。</h3><button type="button" data-route="discover" class="home-text-action">记下一次发现 ↗</button></div><div id="homeFindings"></div></div>
+  </section>
+  <section class="home-create" id="homeCreate" aria-labelledby="homeCreateTitle">
+    <div class="home-section-marker"><span>03</span><i></i><small>CREATE</small></div>
+    <div class="home-art-preview" aria-label="菌落色彩灵感"><span class="home-art-label">A STUDY OF LIVING COLOUR</span><div class="home-art-paper"><img data-art-specimen="serr" class="art-red" alt="沙雷氏菌的红色菌落"><img data-art-specimen="micro" class="art-yellow" alt="藤黄微球菌的黄色菌落"><img data-art-specimen="chromo" class="art-purple" alt="紫色色杆菌的紫色菌落"></div><span class="home-art-caption">生命的颜色，自成一幅画。</span><span class="home-art-corner" aria-hidden="true">＋</span></div>
+    <div class="home-create-copy"><p class="home-eyebrow">菌落画室</p><h2 id="homeCreateTitle">让生命，<br>成为你的作品。</h2><p class="home-section-lede">把观察到的颜色，留在你的画面里。<br>让生长，接着完成你的想象。</p><button type="button" data-route="studio" class="home-primary-action">走进菌落画室 <span aria-hidden="true">↗</span></button><div class="home-my-gallery"><span class="home-tiny-label">YOUR GALLERY</span><div id="homeWorks"></div></div></div>
+  </section>
+  <footer class="home-footer"><div><span class="home-footer-brand">皿星</span><small>MINXING / GROWING CURIOSITY</small></div><p>愿你的好奇，永远有回响。</p><button id="homeFooterIntro" type="button">再出发一次 ↗</button></footer>
+  <nav class="home-chapters" aria-label="首页章节"><button type="button" data-home-chapter="homeUniverse" aria-label="探索菌落" aria-current="true"><i></i><span>探索</span></button><button type="button" data-home-chapter="homeObservation" aria-label="今日观察"><i></i><span>观察</span></button><button type="button" data-home-chapter="homeDiscover" aria-label="微观发现"><i></i><span>发现</span></button><button type="button" data-home-chapter="homeCreate" aria-label="菌落创作"><i></i><span>创作</span></button></nav>
+</section>

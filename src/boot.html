@@ -1,0 +1,36 @@
+<style>
+#minxingBootError[hidden]{display:none!important}
+#minxingBootError{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:#040c13;color:#e5eeea;font:15px/1.8 system-ui,sans-serif;letter-spacing:0}
+#minxingBootError .boot-card{width:min(380px,calc(100vw - 48px))}
+#minxingBootError .boot-brand{color:#a8cdbf;font-size:13px;letter-spacing:.22em}
+#minxingBootError h2{font-size:25px;font-weight:500;line-height:1.5;margin:20px 0 12px}
+#minxingBootError p{color:#aabdb9;margin:0 0 24px}
+#minxingBootError button{background:#dae8d3;color:#102322;border:0;border-radius:99px;padding:12px 24px;cursor:pointer;font:inherit}
+#minxingBootError button:focus-visible{outline:2px solid #fff;outline-offset:5px}
+</style>
+<section id="minxingBootError" hidden role="alert" tabindex="-1" aria-labelledby="minxingBootTitle">
+  <div class="boot-card"><div class="boot-brand">皿星 / MINXING</div><h2 id="minxingBootTitle">微观世界暂时没有打开</h2><p id="minxingBootMessage">请重新加载。你的培养记录会保留。</p><button type="button" id="minxingBootRetry">重新加载 ↗</button></div>
+</section>
+<script>
+(() => {
+  let ready=false;
+  const panel=document.getElementById('minxingBootError');
+  function fail(error){
+    if(ready||!panel.hidden)return;
+    clearTimeout(timer);
+    const detail=String(error?.message||error||'');
+    document.getElementById('minxingBootMessage').textContent=/webgl|context|gpu/i.test(detail)
+      ?'当前预览未能启动 3D 画面。请关闭其他 3D 预览标签后重试，或在浏览器中打开此链接。你的培养记录会保留。'
+      :'页面未能完成加载。请重新加载；你的培养记录会保留。';
+    panel.inert=false;panel.hidden=false;panel.focus();
+  }
+  const timer=setTimeout(()=>fail('startup timeout'),12000);
+  window.__minxingBoot={fail,ready(){ready=true;clearTimeout(timer);panel.hidden=true;},get complete(){return ready;}};
+  window.addEventListener('error',event=>{
+    const ownScript=event.target?.id==='minxingApp';
+    const ownRuntime=event.filename&&event.filename.split('#')[0]===location.href.split('#')[0];
+    if(ownScript||ownRuntime)fail(event.error||event.message||'module loading failed');
+  },true);
+  document.getElementById('minxingBootRetry').onclick=()=>location.reload();
+})();
+</script>

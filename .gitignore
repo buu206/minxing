@@ -1,0 +1,17 @@
+node_modules/
+.DS_Store
+__pycache__/
+src/assembled.html
+src/module.mjs
+src/colony.html
+*.log
+.env
+.env.*
+!.env.example
+
+# Personal briefing materials are kept outside this repository.
+docs/TEACHER-BRIEF.md
+docs/INTERVIEW-GUIDE.md
+docs/TECHNICAL-WORKFLOW.md
+docs/PROMPTS-AND-SKILLS.md
+
