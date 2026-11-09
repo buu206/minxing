@@ -2,8 +2,9 @@
 const HomeIntro=(()=>{
   const root=document.getElementById('homeIntro'),skip=document.getElementById('homeIntroSkip'),hint=document.getElementById('homeIntroHint');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)'),SESSION_KEY='minxing.home-intro.constellation-v1';
+  const FULL_DURATION=10;
   const clamp=n=>Math.max(0,Math.min(1,n)),ease=n=>{n=clamp(n);return n*n*(3-2*n);};
-  let active=false,played=false,frame=0,startAt=0,readyDeadline=0,elapsed=0,duration=7.6,mode='full',previousInert=[],priorFocus=null,callback=null;
+  let active=false,played=false,frame=0,startAt=0,readyDeadline=0,elapsed=0,duration=FULL_DURATION,mode='full',previousInert=[],priorFocus=null,callback=null;
   let pointerX=0,pointerY=0;
   const readSeen=()=>{try{return localStorage.getItem(SESSION_KEY)==='1';}catch{return played;}};
   function markSeen(){played=true;try{localStorage.setItem(SESSION_KEY,'1');}catch{}}
@@ -31,9 +32,20 @@ const HomeIntro=(()=>{
     root.style.setProperty('--entry-veil',returning?'0':(1-ease((p-.73)/.25)).toFixed(4));
     document.body.style.setProperty('--entry-world',returning?'1':ease((p-.72)/.16).toFixed(4));
     const phase=p<.28?'drift':p<.52?'connect':p<.74?'gather':p<.88?'germinate':'arrive';
-    const ranges={drift:[.04,.13,.23,.28],connect:[.28,.34,.46,.52],gather:[.52,.57,.68,.74]};
-    const r=ranges[phase];
-    root.style.setProperty('--entry-copy',returning||!r?'0':(ease((p-r[0])/(r[1]-r[0]))*(1-ease((p-r[2])/(r[3]-r[2])))).toFixed(4));
+    // Give each sentence a stable reading window independent of the visual phases.
+    const captions=[
+      {key:'discover',range:[0,.025,.265,.295],title:'每一点微光，都是一次发现。',description:'让万千好奇，在此相遇。'},
+      {key:'connect',range:[.295,.32,.56,.59],title:'让好奇，彼此连接。',description:'不同的发现，生长出新的理解。'},
+      {key:'companion',range:[.59,.62,.85,.88],title:'万千灵感，汇成萤萤。',description:'你的 AI 伙伴，和你一起探索。'}
+    ];
+    const caption=returning?null:captions.find(item=>p>=item.range[0]&&p<item.range[3]);
+    const r=caption?.range;
+    root.style.setProperty('--entry-copy',r?(ease((p-r[0])/(r[1]-r[0]))*(1-ease((p-r[2])/(r[3]-r[2])))).toFixed(4):'0');
+    if(caption&&root.dataset.copy!==caption.key){
+      root.dataset.copy=caption.key;
+      document.getElementById('homeIntroTitle').textContent=caption.title;
+      document.getElementById('homeIntroDescription').textContent=caption.description;
+    }
     root.style.setProperty('--entry-ui',(1-ease((p-.79)/.14)).toFixed(4));
     if(!returning){
       const target=HomeLifeVisual.state.entryAnchor;
@@ -48,8 +60,6 @@ const HomeIntro=(()=>{
     }
     if(root.dataset.phase!==phase){
       root.dataset.phase=phase;
-      const copy={drift:['每一点微光，都是一次发现。','让万千好奇，在此相遇。'],connect:['让好奇，彼此连接。','不同的发现，生长出新的理解。'],gather:['万千灵感，汇成萤萤。','你的 AI 伙伴，和你一起探索。']};
-      if(copy[phase]){document.getElementById('homeIntroTitle').textContent=copy[phase][0];document.getElementById('homeIntroDescription').textContent=copy[phase][1];}
       hint.textContent=returning?'欢迎回来，生命仍在生长':({drift:'移动鼠标，穿行微光之间',connect:'从星星点点，到彼此相连',gather:'萤萤，与你相遇',germinate:'让一个问题，生长成一个世界',arrive:'把好奇，养成生命。'})[phase];
     }
   }
@@ -69,11 +79,11 @@ const HomeIntro=(()=>{
     if(active)finish({reason:'restart',restoreFocus:false});callback=onFinish;
     if(reduced.matches){finish({reason:'reduced-motion',restoreFocus:false});return false;}
     if(root.dataset.skipped==='true'&&!force){finish({reason:'skip',restoreFocus:false});return false;}
-    mode=!force&&(played||readSeen())?'return':'full';duration=mode==='return'?1.1:7.6;
+    mode=!force&&(played||readSeen())?'return':'full';duration=mode==='return'?1.1:FULL_DURATION;
     if(mode==='full'&&!EntryConstellation.init(document.getElementById('homeConstellation'))){mode='return';duration=1.1;}
     priorFocus=document.activeElement;active=true;elapsed=0;startAt=0;readyDeadline=performance.now()+6000;
     document.getElementById('homePage').scrollTop=0;
-    document.body.classList.add('home-intro-playing');root.hidden=false;root.dataset.mode=mode;root.dataset.phase='preparing';
+    document.body.classList.add('home-intro-playing');root.hidden=false;root.dataset.mode=mode;root.dataset.phase='preparing';root.dataset.copy='';
     root.style.setProperty('--entry-copy','0');root.style.setProperty('--entry-ui','1');root.style.setProperty('--core-label','0');root.style.setProperty('--entry-veil',mode==='return'?'0':'1');
     pointerX=pointerY=0;document.body.style.setProperty('--entry-world',mode==='return'?'1':'0');
     for(const name of ['nav','title','actions','details'])document.body.style.setProperty('--entry-'+name,'0');
