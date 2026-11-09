@@ -25,7 +25,7 @@
 .home-intro-story{width:220px;font:11px/1.7 'Songti SC','STSong',serif;letter-spacing:.09em}.home-intro-track{height:1px;background:#b6cbb325;margin-top:15px;overflow:hidden}.home-intro-track i{display:block;width:100%;height:1px;background:linear-gradient(90deg,#719c8a,#e0e9aa);box-shadow:0 0 8px #d5e8b0;transform:scaleX(var(--journey,0));transform-origin:left}
 .home-intro-chapters{display:flex;align-items:center;gap:20px;font:12px/1.6 'Songti SC','STSong',serif;letter-spacing:.1em}.home-intro-chapters span{color:#6e8880;transition:color .4s}.home-intro-chapters small{font:8px monospace;margin-right:9px;opacity:.65}.home-intro-chapters>i{height:1px;width:24px;background:#b3c4a92b}
 .home-intro[data-phase=drift] [data-chapter=drift],.home-intro[data-phase=connect] [data-chapter=connect],.home-intro[data-phase=gather] [data-chapter=gather]{color:#e3e9c8}
-.home-intro[data-mode=return] .home-intro-copy,.home-intro[data-mode=return] .home-intro-chapters,.home-intro[data-mode=return] .home-intro-brand{display:none}
+.home-intro[data-mode=fallback] .home-intro-copy,.home-intro[data-mode=fallback] .home-intro-chapters,.home-intro[data-mode=fallback] .home-intro-brand{display:none}
 /* Reveal the actual controls in place while the camera settles. */
 .home-intro-playing #appNav,.home-intro-preparing #appNav{opacity:var(--entry-nav,0);transition:none}
 .home-intro-playing #homeUniverse .home-heading,.home-intro-preparing #homeUniverse .home-heading{opacity:var(--entry-title,0);translate:0 calc((1 - var(--entry-title,0)) * 14px);transition:none}
