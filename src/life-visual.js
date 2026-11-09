@@ -65,7 +65,7 @@ const HomeLifeVisual = (() => {
         uniform sampler2D u_image,u_front;
         uniform vec2 u_size;
         uniform vec4 u_cover;
-        uniform float u_time,u_amplitude;
+        uniform float u_time,u_amplitude,u_journey;
         void main(){
           vec2 p=v_uv*u_size;
           vec2 q=(p-u_cover.xy)/u_cover.zw;
@@ -88,6 +88,20 @@ const HomeLifeVisual = (() => {
           vec3 color=texture2D(u_image,uv).rgb;
           float sheen=(sin(phase+.65)*.017+sin(cross-.4)*.009)*mask;
           color*=1.+sheen*u_amplitude/5.;
+          // A broad light front reveals the real texture, then disappears entirely.
+          float entry=1.-smoothstep(.53,.94,u_journey);
+          float wake=smoothstep(.02,.75,u_journey);
+          float radius=mix(.025,1.25,wake);
+          float seedX=u_size.x<700.?.53:.40;
+          vec2 fromSeed=vec2((q.x-seedX)*.9,(depth-.025)*1.35);
+          float opened=1.-smoothstep(radius*.4,radius,length(fromSeed));
+          float rim=exp(-pow((depth-.012)/.05,2.));
+          float sweep=exp(-pow((q.x-mix(seedX,.68,wake))/.13,2.))*rim;
+          float lum=dot(color,vec3(.2126,.7152,.0722));
+          vec3 night=vec3(lum*.30,lum*.51,lum*.51);
+          color=mix(color,mix(night,color,opened*.7+.3*wake),entry);
+          color*=mix(1.,.10+opened*.76,entry);
+          color+=vec3(.26,.30,.13)*sweep*entry*.26;
           gl_FragColor=vec4(color,1.);
         }`);
       const program=gl.createProgram();gl.attachShader(program,vs);gl.attachShader(program,fs);gl.linkProgram(program);
@@ -99,7 +113,7 @@ const HomeLifeVisual = (() => {
       breathImage=texture(gl.TEXTURE0);breathFront=texture(gl.TEXTURE1);
       const pixels=new Uint8Array(edge.length*4);edge.forEach((v,i)=>{pixels[i*4]=Math.round(clamp(v,0,1)*255);pixels[i*4+3]=255;});
       gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,edge.length,1,0,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
-      for(const name of ['u_image','u_front','u_size','u_cover','u_time','u_amplitude'])breathUniforms[name]=gl.getUniformLocation(program,name);
+      for(const name of ['u_image','u_front','u_size','u_cover','u_time','u_amplitude','u_journey'])breathUniforms[name]=gl.getUniformLocation(program,name);
       gl.uniform1i(breathUniforms.u_image,0);gl.uniform1i(breathUniforms.u_front,1);
       breathGL=gl;breathProgram=program;
       breathCanvas.addEventListener('webglcontextlost',event=>{event.preventDefault();breathFailed=true;breathGL=null;breathProgram=null;if(enabled)paint(performance.now(),true);});
@@ -122,7 +136,8 @@ const HomeLifeVisual = (() => {
     const gl=breathGL;
     if(gl.isContextLost()){breathFailed=true;breathGL=null;fieldCtx.drawImage(base,0,0,width,height);return;}
     gl.useProgram(breathProgram);gl.uniform1f(breathUniforms.u_time,time);
-    gl.uniform1f(breathUniforms.u_amplitude,width<700?3.0:5.2);
+    gl.uniform1f(breathUniforms.u_amplitude,(width<700?3.0:5.2)*(1+.65*Math.sin(journey*Math.PI)));
+    gl.uniform1f(breathUniforms.u_journey,journey);
     gl.drawArrays(gl.TRIANGLES,0,3);fieldCtx.drawImage(breathCanvas,0,0,width,height);
   }
 
@@ -189,8 +204,8 @@ const HomeLifeVisual = (() => {
     if(!lampLocked){lamp.x=mix(lamp.x,aim.x,t*.68);lamp.y=mix(lamp.y,aim.y,t*.68);}
   }
   function drawLens(){
-    if(journey<.995||!loaded||scrollProgress>=.25)return;
-    const c=ctx,r=lens.r,alpha=1-smooth(scrollProgress/.25);c.save();c.globalAlpha=alpha;
+    if(journey<.85||!loaded||scrollProgress>=.25)return;
+    const c=ctx,r=lens.r,alpha=smooth((journey-.85)/.15)*(1-smooth(scrollProgress/.25));c.save();c.globalAlpha=alpha;
     c.beginPath();c.arc(lens.x,lens.y,r,0,Math.PI*2);c.clip();c.fillStyle='#0b2025';c.fillRect(lens.x-r,lens.y-r,r*2,r*2);
     const sample=r/lens.zoom;
     c.drawImage(field,(source.x-sample)*dpr,(source.y-sample)*dpr,sample*2*dpr,sample*2*dpr,lens.x-r,lens.y-r,r*2,r*2);
@@ -200,11 +215,46 @@ const HomeLifeVisual = (() => {
     c.strokeStyle='rgba(230,233,210,.55)';c.lineWidth=.8;c.beginPath();c.moveTo(x,y);c.lineTo(source.x,source.y);c.stroke();
     c.fillStyle='#dce4ca';c.beginPath();c.arc(source.x,source.y,2.2,0,Math.PI*2);c.fill();c.restore();
   }
+  function entryCamera(){
+    const p=reduce.matches?1:smooth((journey-.16)/.84),zoom=1+1.55*(1-p);
+    const anchor=sourcePoint(width<700?.53:.48,edgeY(width<700?.53:.48)+.045);
+    const x=clamp((width*.76-anchor.x)*(1-p)+anchor.x*(1-zoom),width*(1-zoom),0);
+    const y=clamp((height*.66-anchor.y)*(1-p)+anchor.y*(1-zoom),height*(1-zoom),0);
+    return {zoom,x,y};
+  }
+  function cameraTransform(c){const view=entryCamera();c.translate(view.x,view.y);c.scale(view.zoom,view.zoom);}
+  function drawAwakening(){
+    if(reduce.matches||journey>=.82)return;
+    const c=fieldCtx,fade=smooth(journey/.12)*(1-smooth((journey-.42)/.4)),scale=cover.w/1584;
+    c.save();c.lineCap='round';
+    // Branches remain attached to the photographed growth edge, not floating decoration.
+    for(let i=0;i<growth.length;i++){
+      const b=growth[i],reveal=smooth((journey-Math.abs(b.u-.38)*.32-.025)/.28);
+      if(!reveal)continue;
+      const pt=sourcePoint(b.u,b.y+.014),length=(b.length+6)*.65*scale*reveal;
+      const sway=Math.sin(time*1.1+b.phase)*2*scale;
+      const tip={x:pt.x+b.nx*length+sway,y:pt.y+b.ny*length};
+      c.strokeStyle=`rgba(205,228,187,${fade*.32})`;c.lineWidth=.32;
+      c.beginPath();c.moveTo(pt.x,pt.y);c.quadraticCurveTo(pt.x+b.nx*length*.38,pt.y+b.ny*length*.5,tip.x,tip.y);c.stroke();
+      for(const sign of [-1,1]){
+        c.beginPath();c.moveTo(mix(pt.x,tip.x,.57),mix(pt.y,tip.y,.57));
+        c.quadraticCurveTo(tip.x+sign*length*.12,tip.y+length*.08,tip.x+sign*length*.21,tip.y-length*.12*reveal);c.stroke();
+      }
+      c.fillStyle=`rgba(227,235,176,${fade*.45})`;c.beginPath();c.arc(tip.x,tip.y,.4,0,Math.PI*2);c.fill();
+    }
+    c.restore();
+  }
   function drawLamp(){
-    if(!loaded)return;const c=ctx,alpha=smooth((journey-.55)/.4)*(1-smooth(scrollProgress/.25)),r=(mood==='listening'?5.5:4.3)+(reduce.matches?0:Math.sin(time*1.4)*.45);
-    c.save();const entryZoom=reduce.matches?1:1+.30*(1-smooth(journey));if(entryZoom>1.0001){const anchor=sourcePoint(.57,edgeY(.57)+.07);c.translate(anchor.x,anchor.y);c.scale(entryZoom,entryZoom);c.translate(-anchor.x,-anchor.y);}c.globalAlpha=alpha;const glow=c.createRadialGradient(lamp.x,lamp.y,1,lamp.x,lamp.y,25+energy*6);
-    glow.addColorStop(0,'rgba(214,240,153,.36)');glow.addColorStop(.3,'rgba(183,216,127,.13)');glow.addColorStop(1,'rgba(176,211,123,0)');c.fillStyle=glow;c.fillRect(lamp.x-32,lamp.y-32,64,64);
-    c.fillStyle='#e0efac';c.beginPath();c.arc(lamp.x,lamp.y,r,0,Math.PI*2);c.fill();c.restore();
+    if(!loaded)return;
+    const c=ctx,awake=reduce.matches?1:smooth(journey/.11),alpha=awake*(1-smooth(scrollProgress/.25));
+    const r=(mood==='listening'?5.5:4.3)+(reduce.matches?0:Math.sin(time*1.4)*.45);
+    const travel=smooth((journey-.08)/.78),u=mix(width<700?.53:.40,.615,travel),onEdge=sourcePoint(u,edgeY(u)-.025);
+    const settle=smooth((journey-.76)/.24),position={x:mix(onEdge.x,lamp.x,settle),y:mix(onEdge.y,lamp.y,settle)};
+    c.save();cameraTransform(c);c.globalAlpha=alpha;
+    const radius=25+energy*6+(1-journey)*12,glow=c.createRadialGradient(position.x,position.y,1,position.x,position.y,radius);
+    glow.addColorStop(0,'rgba(214,240,153,.45)');glow.addColorStop(.3,'rgba(183,216,127,.16)');glow.addColorStop(1,'rgba(176,211,123,0)');
+    c.fillStyle=glow;c.fillRect(position.x-radius,position.y-radius,radius*2,radius*2);
+    c.fillStyle='#e0efac';c.beginPath();c.arc(position.x,position.y,r,0,Math.PI*2);c.fill();c.restore();
     if(aiButton&&canvas.parentElement?.id==='homeLifeMount'){
       if(Math.abs(lastButtonX-lamp.x)>.3||Math.abs(lastButtonY-lamp.y)>.3){aiButton.style.left=lamp.x.toFixed(2)+'px';aiButton.style.top=lamp.y.toFixed(2)+'px';lastButtonX=lamp.x;lastButtonY=lamp.y;}
     }
@@ -215,14 +265,17 @@ const HomeLifeVisual = (() => {
     if(!once&&now-lastPaint<31){frame=requestAnimationFrame(paint);return;}
     const dt=last?Math.min((now-last)/1000,.08):.016;last=now;lastPaint=now;if(!reduce.matches)time+=dt;
     energy=mix(energy,mood==='answer'?1:mood==='listening'?.55:0,Math.min(1,dt*3));
-    updateLens(dt);drawBreathing();if(loaded)drawGrowth();
+    updateLens(dt);drawBreathing();if(loaded){drawGrowth();drawAwakening();}
     ctx.clearRect(0,0,width,height);
-    // The entry is a close view of this exact surface, eased back into the home.
-    const zoom=reduce.matches?1:1+.30*(1-smooth(journey));
-    if(zoom>1.0001){
-      const anchor=sourcePoint(.57,edgeY(.57)+.07);
-      ctx.save();ctx.translate(anchor.x,anchor.y);ctx.scale(zoom,zoom);ctx.translate(-anchor.x,-anchor.y);ctx.drawImage(field,0,0,width,height);ctx.restore();
-    }else ctx.drawImage(field,0,0,width,height);
+    ctx.save();cameraTransform(ctx);ctx.drawImage(field,0,0,width,height);ctx.restore();
+    if(journey<.92){
+      const fade=1-smooth((journey-.2)/.72);
+      // Optical falloff keeps the first close-up intimate without a separate loading scene.
+      const shade=ctx.createRadialGradient(width*.7,height*.64,width*.08,width*.6,height*.6,Math.max(width,height)*.85);
+      shade.addColorStop(0,'rgba(3,14,16,0)');shade.addColorStop(1,`rgba(3,14,16,${fade*.68})`);
+      ctx.fillStyle=shade;ctx.fillRect(0,0,width,height);
+      if(!breathGL){ctx.fillStyle=`rgba(3,14,16,${(1-smooth(journey/.8))*.85})`;ctx.fillRect(0,0,width,height);}
+    }
     drawLens();drawLamp();paintCount++;canvas.dataset.ready=String(loaded);canvas.dataset.journey=journey.toFixed(3);canvas.dataset.mood=mood;canvas.dataset.focus=focus;
     if(!once)frame=reduce.matches?0:requestAnimationFrame(paint);
   }
@@ -261,6 +314,6 @@ const HomeLifeVisual = (() => {
   function setMood(value){mood=['idle','listening','answer'].includes(value)?value:'idle';if(enabled&&reduce.matches)paint(performance.now(),true);}
   function setFocus(value){focus=['explore','observe','create','ask'].includes(value)?value:'explore';if(enabled&&reduce.matches)paint(performance.now(),true);}
   function pulse(){if(!reduce.matches){pulseAt=time;kick();}}
-  const api={init,resize,setActive,setJourney,setScrollProgress,setMood,setFocus,pulse,get canvas(){return canvas;},get motionCanvas(){return breathCanvas;},get active(){return enabled&&!failed;},get state(){return {version:'colony-breath-d',initialized,failed,loaded,enabled,active:enabled&&!failed,inView,reduced:reduce.matches,journey,entryZoom:reduce.matches?1:1+.30*(1-smooth(journey)),scrollProgress,mood,focus,width,height,motionTime:time,breathing:{backend:breathGL?'webgl':'static',failed:breathFailed,amplitude:!breathGL||reduce.matches?0:width<700?3.0:5.2},paintCount,sourceVersion,lens:{...lens,sourceX:source.x,sourceY:source.y},lamp:{...lamp,locked:lampLocked},growthSites:growth.length,postprocessing:false};}};
+  const api={init,resize,setActive,setJourney,setScrollProgress,setMood,setFocus,pulse,get canvas(){return canvas;},get motionCanvas(){return breathCanvas;},get active(){return enabled&&!failed;},get state(){return {version:'colony-awakening-v1',initialized,failed,loaded,enabled,active:enabled&&!failed,inView,reduced:reduce.matches,journey,entryZoom:entryCamera().zoom,scrollProgress,mood,focus,width,height,motionTime:time,breathing:{backend:breathGL?'webgl':'static',failed:breathFailed,amplitude:!breathGL||reduce.matches?0:width<700?3.0:5.2},paintCount,sourceVersion,lens:{...lens,sourceX:source.x,sourceY:source.y},lamp:{...lamp,locked:lampLocked},growthSites:growth.length,postprocessing:false};}};
   window.__homeLifeVisual=api;return api;
 })();
