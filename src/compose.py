@@ -18,7 +18,7 @@ block('<section id="homePage"','<section id="onboardPage"',file('home.html'))
 block('<section id="homeIntro"','<div id="load">',file('intro.html'))
 image='data:image/png;base64,'+base64.b64encode((w/'colony-landscape.png').read_bytes()).decode()
 asset='const COLONY_LANDSCAPE='+json.dumps(image)+';\n'
-block('// The home assistant is an explicit functional demo.','HomeLanding.init();',file('live-ai.js')+'\n'+file('assistant.js')+'\n'+asset+file('life-visual.js')+'\n'+file('intro.js')+'\n'+file('home.js'))
+block('// The home assistant is an explicit functional demo.','HomeLanding.init();',file('live-ai.js')+'\n'+file('assistant.js')+'\n'+asset+file('life-visual.js')+'\n'+file('entry-constellation.js')+'\n'+file('intro.js')+'\n'+file('home.js'))
 replace("button.append(img,document.createTextNode(sp.name));button.onclick=()=>{appNavigate('dex');selectDexSpecimen(sp.id);};wall.append(button);","button.dataset.homeSpecies=sp.id;button.append(img,document.createTextNode(sp.name));button.onclick=()=>{appNavigate('dex');selectDexSpecimen(sp.id);};wall.append(button);")
 replace('<script type="importmap">',file('boot.html')+'\n<script type="importmap">')
 replace("const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });","const renderer = (() => { try { return new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }); } catch(error) { window.__minxingBoot.fail(new Error('WebGL initialization failed')); throw error; } })();")

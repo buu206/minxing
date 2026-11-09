@@ -7,6 +7,7 @@ const HomeLifeVisual = (() => {
   let canvas,ctx,base,baseCtx,field,fieldCtx,image,hero,aiButton,observer,resizer;
   let width=1,height=1,dpr=1,frame=0,last=0,lastPaint=0,time=0,journey=1,mood='idle',focus='explore',energy=0,scrollProgress=0;
   let breathCanvas=null,breathGL=null,breathProgram=null,breathImage=null,breathFront=null,breathUniforms={},breathFailed=false;
+  let entryBridge=false,emergence=1,branches=[];
   let initialized=false,failed=false,loaded=false,enabled=false,inView=true,pulseAt=-100;
   let cover={x:0,y:0,w:1,h:1},edge=[],growth=[],seeds=[],pointerActive=false,touchUntil=0,lampLocked=false;
   let source={x:0,y:0},sourceGoal={x:0,y:0},lamp={x:0,y:0},lens={x:0,y:0,r:1,zoom:2.25};
@@ -63,9 +64,9 @@ const HomeLifeVisual = (() => {
         precision highp float;
         varying vec2 v_uv;
         uniform sampler2D u_image,u_front;
-        uniform vec2 u_size;
+        uniform vec2 u_size,u_seed;
         uniform vec4 u_cover;
-        uniform float u_time,u_amplitude,u_journey;
+        uniform float u_time,u_amplitude,u_journey,u_emergence,u_bridge;
         void main(){
           vec2 p=v_uv*u_size;
           vec2 q=(p-u_cover.xy)/u_cover.zw;
@@ -89,18 +90,21 @@ const HomeLifeVisual = (() => {
           float sheen=(sin(phase+.65)*.017+sin(cross-.4)*.009)*mask;
           color*=1.+sheen*u_amplitude/5.;
           // A broad light front reveals the real texture, then disappears entirely.
-          float entry=1.-smoothstep(.53,.94,u_journey);
-          float wake=smoothstep(.02,.75,u_journey);
+          float entry=u_bridge>.5?1.-smoothstep(.80,1.,u_emergence):1.-smoothstep(.53,.94,u_journey);
+          float wake=u_bridge>.5?smoothstep(.02,.94,u_emergence):smoothstep(.02,.75,u_journey);
           float radius=mix(.025,1.25,wake);
-          float seedX=u_size.x<700.?.53:.40;
-          vec2 fromSeed=vec2((q.x-seedX)*.9,(depth-.025)*1.35);
-          float opened=1.-smoothstep(radius*.4,radius,length(fromSeed));
+          float seedX=u_bridge>.5?u_seed.x:(u_size.x<700.?.53:.40);
+          float seedDepth=u_bridge>.5?u_seed.y-texture2D(u_front,vec2(seedX,.5)).r:.025;
+          vec2 fromSeed=vec2((q.x-seedX)*.9,(depth-seedDepth)*1.35);
+          float irregular=sin(q.x*29.+q.y*21.)*.025+sin(q.x*67.-q.y*39.)*.012;
+          float distance=length(fromSeed)+irregular*(1.-wake);
+          float opened=1.-smoothstep(radius*.60,radius,distance);
           float rim=exp(-pow((depth-.012)/.05,2.));
           float sweep=exp(-pow((q.x-mix(seedX,.68,wake))/.13,2.))*rim;
           float lum=dot(color,vec3(.2126,.7152,.0722));
           vec3 night=vec3(lum*.30,lum*.51,lum*.51);
           color=mix(color,mix(night,color,opened*.7+.3*wake),entry);
-          color*=mix(1.,.10+opened*.76,entry);
+          color*=mix(1.,(u_bridge>.5?.012:.10)+opened*.88,entry);
           color+=vec3(.26,.30,.13)*sweep*entry*.26;
           gl_FragColor=vec4(color,1.);
         }`);
@@ -113,7 +117,7 @@ const HomeLifeVisual = (() => {
       breathImage=texture(gl.TEXTURE0);breathFront=texture(gl.TEXTURE1);
       const pixels=new Uint8Array(edge.length*4);edge.forEach((v,i)=>{pixels[i*4]=Math.round(clamp(v,0,1)*255);pixels[i*4+3]=255;});
       gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,edge.length,1,0,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
-      for(const name of ['u_image','u_front','u_size','u_cover','u_time','u_amplitude','u_journey'])breathUniforms[name]=gl.getUniformLocation(program,name);
+      for(const name of ['u_image','u_front','u_size','u_cover','u_time','u_amplitude','u_journey','u_emergence','u_bridge','u_seed'])breathUniforms[name]=gl.getUniformLocation(program,name);
       gl.uniform1i(breathUniforms.u_image,0);gl.uniform1i(breathUniforms.u_front,1);
       breathGL=gl;breathProgram=program;
       breathCanvas.addEventListener('webglcontextlost',event=>{event.preventDefault();breathFailed=true;breathGL=null;breathProgram=null;if(enabled)paint(performance.now(),true);});
@@ -138,6 +142,8 @@ const HomeLifeVisual = (() => {
     gl.useProgram(breathProgram);gl.uniform1f(breathUniforms.u_time,time);
     gl.uniform1f(breathUniforms.u_amplitude,(width<700?3.0:5.2)*(1+.65*Math.sin(journey*Math.PI)));
     gl.uniform1f(breathUniforms.u_journey,journey);
+    gl.uniform2f(breathUniforms.u_seed,(lamp.x-cover.x)/cover.w,(lamp.y-cover.y)/cover.h);
+    gl.uniform1f(breathUniforms.u_emergence,emergence);gl.uniform1f(breathUniforms.u_bridge,entryBridge?1:0);
     gl.drawArrays(gl.TRIANGLES,0,3);fieldCtx.drawImage(breathCanvas,0,0,width,height);
   }
 
@@ -223,7 +229,32 @@ const HomeLifeVisual = (() => {
     return {zoom,x,y};
   }
   function cameraTransform(c){const view=entryCamera();c.translate(view.x,view.y);c.scale(view.zoom,view.zoom);}
+  function drawGermination(){
+    if(emergence<=0||emergence>=1)return;
+    if(!branches.length){
+      let seed=0;
+      function fork(x,y,angle,length,depth,birth){
+        const id=seed++,turn=(rand(id+670)-.5)*1.1;
+        const end={x:x+Math.cos(angle+turn)*length,y:y+Math.sin(angle+turn)*length};
+        branches.push({x,y,cx:x+Math.cos(angle)*length*.55,cy:y+Math.sin(angle)*length*.55,ex:end.x,ey:end.y,birth,depth});
+        if(depth<5){for(const side of [-1,1])fork(end.x,end.y,angle+turn+side*(.24+rand(id+901)*.35),length*(.58+rand(id+77)*.19),depth+1,birth+.12);}
+      }
+      for(let i=0;i<9;i++)fork(0,0,Math.PI*(.06+i*.11),.026+rand(i+55)*.016,0,i*.006);
+    }
+    const origin={x:(lamp.x-cover.x)/cover.w,y:(lamp.y-cover.y)/cover.h};
+    const c=fieldCtx,fade=1-smooth((emergence-.85)/.15);c.save();c.lineCap='round';
+    for(const b of branches){
+      const t=smooth((emergence-b.birth)/.115);if(!t)continue;
+      const p0=sourcePoint(origin.x+b.x,origin.y+b.y),p1=sourcePoint(origin.x+b.cx,origin.y+b.cy),p2=sourcePoint(origin.x+b.ex,origin.y+b.ey);
+      const ax=mix(p0.x,p1.x,t),ay=mix(p0.y,p1.y,t),bx=mix(p1.x,p2.x,t),by=mix(p1.y,p2.y,t),ex=mix(ax,bx,t),ey=mix(ay,by,t);
+      c.strokeStyle=`rgba(180,219,188,${fade*(.42-b.depth*.055)})`;c.lineWidth=Math.max(.22,.7-b.depth*.09);
+      c.beginPath();c.moveTo(p0.x,p0.y);c.quadraticCurveTo(ax,ay,ex,ey);c.stroke();
+      if(t<1){c.fillStyle=`rgba(232,237,181,${fade*.85})`;c.beginPath();c.arc(ex,ey,.65,0,Math.PI*2);c.fill();}
+    }
+    c.restore();
+  }
   function drawAwakening(){
+    if(entryBridge){drawGermination();return;}
     if(reduce.matches||journey>=.82)return;
     const c=fieldCtx,fade=smooth(journey/.12)*(1-smooth((journey-.42)/.4)),scale=cover.w/1584;
     c.save();c.lineCap='round';
@@ -246,6 +277,10 @@ const HomeLifeVisual = (() => {
   }
   function drawLamp(){
     if(!loaded)return;
+    if(aiButton&&canvas.parentElement?.id==='homeLifeMount'){
+      if(Math.abs(lastButtonX-lamp.x)>.3||Math.abs(lastButtonY-lamp.y)>.3){aiButton.style.left=lamp.x.toFixed(2)+'px';aiButton.style.top=lamp.y.toFixed(2)+'px';lastButtonX=lamp.x;lastButtonY=lamp.y;}
+    }
+    if(entryBridge)return;
     const c=ctx,awake=reduce.matches?1:smooth(journey/.11),alpha=awake*(1-smooth(scrollProgress/.25));
     const r=(mood==='listening'?5.5:4.3)+(reduce.matches?0:Math.sin(time*1.4)*.45);
     const travel=smooth((journey-.08)/.78),u=mix(width<700?.53:.40,.615,travel),onEdge=sourcePoint(u,edgeY(u)-.025);
@@ -255,9 +290,7 @@ const HomeLifeVisual = (() => {
     glow.addColorStop(0,'rgba(214,240,153,.45)');glow.addColorStop(.3,'rgba(183,216,127,.16)');glow.addColorStop(1,'rgba(176,211,123,0)');
     c.fillStyle=glow;c.fillRect(position.x-radius,position.y-radius,radius*2,radius*2);
     c.fillStyle='#e0efac';c.beginPath();c.arc(position.x,position.y,r,0,Math.PI*2);c.fill();c.restore();
-    if(aiButton&&canvas.parentElement?.id==='homeLifeMount'){
-      if(Math.abs(lastButtonX-lamp.x)>.3||Math.abs(lastButtonY-lamp.y)>.3){aiButton.style.left=lamp.x.toFixed(2)+'px';aiButton.style.top=lamp.y.toFixed(2)+'px';lastButtonX=lamp.x;lastButtonY=lamp.y;}
-    }
+
   }
   function paint(now,once=false){
     if(!initialized||failed)return;
@@ -281,7 +314,7 @@ const HomeLifeVisual = (() => {
   }
   function kick(){if(initialized&&!failed&&enabled&&inView&&!document.hidden&&!frame){last=0;if(reduce.matches)paint(performance.now(),true);else frame=requestAnimationFrame(paint);}}
   function point(event){
-    if(!enabled||journey<.99||!loaded||scrollProgress>.05)return;
+    if(!enabled||entryBridge||journey<.99||!loaded||scrollProgress>.05)return;
     const box=canvas.getBoundingClientRect(),x=(event.clientX-box.left)*width/box.width,y=(event.clientY-box.top)*height/box.height;
     lampLocked=Math.hypot(x-lamp.x,y-lamp.y)<95||!!event.target.closest('#homeMeetAI');
     if(event.target.closest('button,input,textarea,select,a,.home-heading,.home-main-actions,.home-hero-foot,[contenteditable]'))return;
@@ -311,9 +344,10 @@ const HomeLifeVisual = (() => {
   function setActive(value){if(!initialized&&!init())return;const next=!!value;if(enabled===next){if(next)kick();return;}enabled=next;if(enabled){resize();kick();}else{cancelAnimationFrame(frame);frame=0;last=0;pointerActive=false;}}
   function setScrollProgress(value){scrollProgress=clamp(Number.isFinite(value)?value:0,0,1);if(scrollProgress>.05){pointerActive=false;lampLocked=false;}if(enabled&&reduce.matches)paint(performance.now(),true);}
   function setJourney(value){journey=clamp(Number.isFinite(value)?value:1,0,1);if(enabled&&reduce.matches)paint(performance.now(),true);}
+  function setEntryBridge(value,progress=1){if(value&&!entryBridge){pointerActive=false;touchUntil=0;lampLocked=false;sourceGoal=idleSource();source={...sourceGoal};lamp=idleLamp();}entryBridge=!!value;emergence=clamp(progress,0,1);}
   function setMood(value){mood=['idle','listening','answer'].includes(value)?value:'idle';if(enabled&&reduce.matches)paint(performance.now(),true);}
   function setFocus(value){focus=['explore','observe','create','ask'].includes(value)?value:'explore';if(enabled&&reduce.matches)paint(performance.now(),true);}
   function pulse(){if(!reduce.matches){pulseAt=time;kick();}}
-  const api={init,resize,setActive,setJourney,setScrollProgress,setMood,setFocus,pulse,get canvas(){return canvas;},get motionCanvas(){return breathCanvas;},get active(){return enabled&&!failed;},get state(){return {version:'colony-awakening-v1',initialized,failed,loaded,enabled,active:enabled&&!failed,inView,reduced:reduce.matches,journey,entryZoom:entryCamera().zoom,scrollProgress,mood,focus,width,height,motionTime:time,breathing:{backend:breathGL?'webgl':'static',failed:breathFailed,amplitude:!breathGL||reduce.matches?0:width<700?3.0:5.2},paintCount,sourceVersion,lens:{...lens,sourceX:source.x,sourceY:source.y},lamp:{...lamp,locked:lampLocked},growthSites:growth.length,postprocessing:false};}};
+  const api={init,resize,setActive,setJourney,setEntryBridge,setScrollProgress,setMood,setFocus,pulse,get canvas(){return canvas;},get motionCanvas(){return breathCanvas;},get active(){return enabled&&!failed;},get state(){return {version:'constellation-v1',initialized,failed,loaded,enabled,active:enabled&&!failed,inView,reduced:reduce.matches,journey,emergence,entryBridge,entryAnchor:(()=>{const view=entryCamera(),box=canvas.getBoundingClientRect();return {x:box.left+(lamp.x*view.zoom+view.x)*box.width/width,y:box.top+(lamp.y*view.zoom+view.y)*box.height/height};})(),entryZoom:entryCamera().zoom,scrollProgress,mood,focus,width,height,motionTime:time,breathing:{backend:breathGL?'webgl':'static',failed:breathFailed,amplitude:!breathGL||reduce.matches?0:width<700?3.0:5.2},paintCount,sourceVersion,lens:{...lens,sourceX:source.x,sourceY:source.y},lamp:{...lamp,locked:lampLocked},growthSites:growth.length,postprocessing:false};}};
   window.__homeLifeVisual=api;return api;
 })();

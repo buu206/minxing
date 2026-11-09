@@ -1,6 +1,9 @@
 <section id="homeIntro" class="home-intro" role="dialog" aria-modal="true" aria-labelledby="homeIntroTitle" aria-describedby="homeIntroDescription" data-phase="preparing" tabindex="-1">
+  <div class="home-intro-veil" aria-hidden="true"></div>
+  <canvas id="homeConstellation" aria-hidden="true"></canvas>
   <header class="home-intro-header"><span class="home-intro-brand">皿星<span>MINXING</span></span><button id="homeIntroSkip" type="button" onclick="if(window.__homeIntro){window.__homeIntro.finish({reason:'skip'})}else{document.getElementById('homeIntro').hidden=true;document.getElementById('homeIntro').dataset.skipped='true';document.body.classList.remove('home-intro-preparing')}">进入首页 <span aria-hidden="true">↗</span></button></header>
-  <div class="home-intro-copy"><p class="home-intro-eyebrow"><i aria-hidden="true"></i> A WORLD, AWAKENING</p><h1 id="homeIntroTitle">微小之中，<span>生命正在醒来。</span></h1><p id="homeIntroDescription">循着一束微光，遇见一整个世界。</p></div>
-  <footer class="home-intro-footer"><div class="home-intro-story"><span id="homeIntroHint">微观世界，正在展开</span><div class="home-intro-track" aria-hidden="true"><i></i></div></div><div class="home-intro-chapters" aria-hidden="true"><span data-chapter="spark"><small>01</small> 微光</span><i></i><span data-chapter="bloom"><small>02</small> 生长</span><i></i><span data-chapter="arrive"><small>03</small> 相遇</span></div></footer>
+  <div class="home-intro-copy"><p class="home-intro-eyebrow">MINXING / A CONSTELLATION OF CURIOSITY</p><h1 id="homeIntroTitle">每一点微光，都是一次发现。</h1><p id="homeIntroDescription">让万千好奇，在此相遇。</p></div>
+  <div class="home-intro-core-label" aria-hidden="true"><i></i><span>萤萤<small>YOUR AI COMPANION</small></span></div>
+  <footer class="home-intro-footer"><div class="home-intro-story"><span id="homeIntroHint">移动鼠标，穿行微光之间</span><div class="home-intro-track" aria-hidden="true"><i></i></div></div><div class="home-intro-chapters" aria-hidden="true"><span data-chapter="drift"><small>01</small> 星海</span><i></i><span data-chapter="connect"><small>02</small> 共鸣</span><i></i><span data-chapter="gather"><small>03</small> 萤萤</span></div></footer>
 </section>
 <script>if(matchMedia('(prefers-reduced-motion: reduce)').matches){document.getElementById('homeIntro').hidden=true;}else{document.body.classList.add('home-intro-preparing');}</script>
