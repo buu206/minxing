@@ -11,7 +11,7 @@
 - 首页结构和样式：`home.html`、`home.css`
 - 生长前沿、放大镜、萤萤光点：`life-visual.js`
 - 进场与页面衔接：`intro.*`、`home.js`
-- AI 功能演示：`assistant.*`，读取原型真实存档，未连接模型
+- AI 对话：`assistant.*` 与 `live-ai.js`；线上调用 Cloudflare 后端，本地调用 Python 网关
 - 首页底图：`colony-landscape.png`
 - `original.html` 是组合所用的 A 版基础快照；培养室、图鉴、画室等现有功能由它保留。
 

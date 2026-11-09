@@ -1,4 +1,4 @@
-// B / session-only, explicitly unconnected assistant workspace.
+// Session workspace: model explanations grounded in local simulation snapshots.
 const HomeAssistant = (() => {
   let initialized = false;
   let opened = false, nextTurn = 1, workspace = null;
@@ -50,7 +50,7 @@ const HomeAssistant = (() => {
     return {
       title: intent === 'compare' ? '先有一皿，才能做有依据的对照' : '还没有自己的培养皿',
       lines: ['下方“今日观察”的培养皿是展示示例，还不是你的培养记录。', '可以先选一组菌种，接种后萤萤会读取这只皿的数据。'],
-      source: '本地功能演示 · 不生成不存在的培养数据',
+      source: '本地教学模拟 · 不生成不存在的培养数据',
       action: { label: '帮我选第一皿', type: 'ask', value: 'start' }
     };
   }
@@ -85,7 +85,7 @@ const HomeAssistant = (() => {
       lines: [setup.ids.map(name).join(' + ') + ' · ' + medium + ' 培养基 · ' + setup.temperature + ' °C。', setup.observation,
         '先打开配置，确认后才会新建一皿。'],
       species: setup.ids,
-      source:'本地功能演示 · 根据现有菌种与培养模型推荐',
+      source:'本地教学模拟 · 根据现有菌种与培养模型推荐',
       action:{label:'用这组配置开始',type:'setup',value:setup}
     };
   }
@@ -105,14 +105,14 @@ const HomeAssistant = (() => {
     if (/光|灯/.test(text) && requestedTemperature(text) === null && !/营养|补充|喂养/.test(text)) return {
       title:'先把观察光和培养光分开看',
       lines:['展陈、灯箱和暗场只改变观察画面；培养光才会进入生长模型。', '这版首页的对照演示先支持温度与营养，你可以先选一个条件来比较。'],
-      source:'演示模式 · 未连接 AI 模型',
+      source:'本地教学模型的能力范围',
       action:{label:'试一次温度对照',type:'ask',value:'compare'}
     };
     const requested = requestedTemperature(text);
     if (requested !== null && (!Number.isFinite(requested) || requested < 15 || requested > 42)) return {
       title:'先选一个模型支持的温度',
       lines:['这版原型的温度范围是 15–42 °C。', '例如输入“调到 25 度会怎样”，我会对照同一只皿未来 24 小时的模拟变化。'],
-      source:'本地功能演示 · 不推算范围外的数值',
+      source:'本地教学模拟 · 不推算范围外的数值',
       action:{label:'使用推荐条件对照',type:'ask',value:'compare'}
     };
     const nutrient = /营养|补充|喂养/.test(text) && requested === null;
@@ -125,6 +125,7 @@ const HomeAssistant = (() => {
     const condition = nutrient ? '补充营养' : temperature + ' °C';
     return {
       title:'把“' + condition + '”作为一个对照',
+      simulation:{horizonHours:24,current:{temperature:record.temperature,summary:current},baseline:{temperature:record.temperature,summary:baseline},alternate:{changes,summary:alternate}},
       lines:[
         '同一只皿，从当前时点向前模拟 24 小时，仅改变' + (nutrient?'营养':'温度') + '。',
         '保持原条件：存活 ' + baseline.alive + '/' + baseline.total + '，活性 ' + percent(baseline.vitality) + '，覆盖率 ' + baseline.coverage.toFixed(1) + '%。',
@@ -141,9 +142,9 @@ const HomeAssistant = (() => {
     if (intent === 'inspect') return inspect(record);
     if (intent === 'compare') return compare(record,text);
     return {
-      title:'这版萤萤先陪你做好三件事',
-      lines:['解读当前培养皿、推荐第一皿、试算一次条件对照。', '当前是功能演示，还不能像已连接模型的 AI 一样回答任意问题。'],
-      source:'演示模式 · 未连接 AI 模型',
+      title:'一般观察问题',
+      lines:[],
+      source:'本地教学模型的能力范围',
       action:{label:'先看看我的培养皿',type:'ask',value:'inspect'}
     };
   }
@@ -193,7 +194,7 @@ const HomeAssistant = (() => {
     const mark=element('span','✦','home-ai-identity-mark');mark.setAttribute('aria-hidden','true');
     const naming=element('div');
     const title=element('h2','萤萤 AI');title.id='homeAssistantWorkspaceTitle';
-    const mode=element('p','功能演示 · 未连接模型','home-ai-connection');
+    const mode=element('p',LiveAI.statusText,'home-ai-connection');
     naming.append(title,mode);identityBlock.append(mark,naming);
     const dismiss=element('button','×','home-ai-close');dismiss.type='button';dismiss.setAttribute('aria-label','关闭萤萤对话');dismiss.title='关闭 · Esc';dismiss.onclick=()=>close({focus:true});
     header.append(identityBlock,dismiss);
@@ -208,8 +209,8 @@ const HomeAssistant = (() => {
     const input=element('input');input.id='homeAssistantFollowupInput';input.type='text';input.maxLength=280;input.autocomplete='off';input.placeholder='继续问，或换个条件试试…';
     const send=element('button','↑');send.type='submit';send.setAttribute('aria-label','发送给萤萤');
     form.append(label,input,send);
-    form.addEventListener('submit',event=>{event.preventDefault();const value=input.value.trim();if(value){ask(value);input.value='';}});
-    composer.append(form,element('p','解读来自培养记录，对照采用本地教学模型。','home-ai-composer-note'));
+    form.addEventListener('submit',event=>{event.preventDefault();const value=input.value.trim();if(value&&!LiveAI.busy){ask(value);input.value='';}});
+    composer.append(form,element('p','问题与培养快照会发往百炼模型；数值来自教学模拟。','home-ai-composer-note'));
     const announce=element('p',undefined,'home-ai-sr');announce.id='homeAssistantAnnouncement';announce.setAttribute('role','status');announce.setAttribute('aria-live','polite');
     panel.append(header,update,messages,composer,announce);
     workspace={panel,header,update,messages,composer,input,announce};
@@ -223,7 +224,7 @@ const HomeAssistant = (() => {
       const button=element('button');button.type='button';button.dataset.workspacePrompt=key;
       button.append(element('span',label),element('span','↗'));button.onclick=()=>ask(key);choices.append(button);
     }
-    block.append(choices,element('p','现在可体验这三类任务。未连接模型，暂不提供开放式问答。','home-ai-welcome-note'));
+    block.append(choices,element('p','可以直接提问。模型根据培养快照回答；数值与对照由本地教学引擎提供。','home-ai-welcome-note'));
     return block;
   }
   function renderMessages() {
@@ -243,13 +244,15 @@ const HomeAssistant = (() => {
       }
       const body=element('div',undefined,'home-ai-prose');
       for(const line of turn.answer.lines)body.append(element('p',line));
+      if(turn.answer.evidence){const details=element('details');details.append(element('summary','查看程序试算依据（24 小时后）'));for(const line of turn.answer.evidence)details.append(element('p',line));body.append(details);}
       const provenance=element('div',undefined,'home-ai-provenance');
       const timestamp=element('p',turnTime(turn),'home-ai-snapshot');
       const source=element('p',turn.answer.source,'home-ai-source');
       const stale=element('span','历史快照','home-ai-stale');stale.hidden=!isStale(turn);
       provenance.append(timestamp,source,stale);
-      const action=element('button',turn.answer.action.label,'home-ai-action');action.type='button';action.dataset.turnAction=turn.id;action.onclick=()=>perform(turn.answer.action,turn);
-      response.append(body,provenance,action);group.append(user,response);nodes.push(group);
+      response.append(body,provenance);
+      if(turn.answer.action){const action=element('button',turn.answer.action.label,'home-ai-action');action.type='button';action.dataset.turnAction=turn.id;action.onclick=()=>perform(turn.answer.action,turn);response.append(action);}
+      group.append(user,response);nodes.push(group);
     }
     view.messages.replaceChildren(...nodes);
     updateStale();
@@ -292,25 +295,35 @@ const HomeAssistant = (() => {
     }
     if(action.type==='route')appNavigate(action.value);
   }
-  function ask(query) {
+  async function ask(query) {
     const text=String(query||'').trim().slice(0,280);if(!text)return;
-    const intent=detect(text),answer=describe(intent,firstRecord,text);
-    conversation.push({id:nextTurn++,query:text,question:prompts[text]||text,intent,answer,record:metadata(firstRecord)});
+    if(LiveAI.busy){open();if(workspace)workspace.announce.textContent='萤萤正在回答，请稍等。';return;}
+    const intent=detect(text),facts=describe(intent,firstRecord,text);
+    const turn={id:nextTurn++,query:text,question:prompts[text]||text,intent,record:metadata(firstRecord),
+      answer:{title:'萤萤正在思考…',lines:['正在读取提问时的培养快照。'],source:'正在请求真实模型'}};
+    conversation.push(turn);
     while(conversation.length>MAX_TURNS)conversation.shift();
     renderMessages();open({focus:false});
-    if(workspace){workspace.messages.scrollTop=workspace.messages.scrollHeight;workspace.input.focus({preventScroll:true});workspace.announce.textContent=answer.title;}
+    if(workspace){workspace.messages.scrollTop=workspace.messages.scrollHeight;workspace.input.focus({preventScroll:true});}
     if(typeof HomeLanding!=='undefined'&&typeof HomeLanding.answer==='function')HomeLanding.answer();
-    return answer;
+    try{
+      const result=await LiveAI.ask(turn.question,facts);
+      turn.answer={title:'萤萤的回答',lines:result.reply.split(/\n+/).filter(Boolean),
+        source:'真实模型 · '+result.model+'；数据与试算来自本地教学引擎',action:facts.action,evidence:facts.simulation?facts.lines:null};
+    }catch(error){turn.answer={title:'这次没有获得模型回答',lines:[error.message],source:'请求失败 · 未使用演示回答替代',action:{label:'重试这个问题',type:'ask',value:text}};}
+    renderMessages();if(workspace){workspace.messages.scrollTop=workspace.messages.scrollHeight;workspace.announce.textContent=turn.answer.title;}
+    return turn.answer;
   }
   function render() {
-    const status=get('homeAIStatus');if(status){status.textContent='AI 功能演示 · 未连接模型';status.title='功能演示，未连接 AI 模型。解读来自当前培养记录，对照使用本地培养模型。';status.setAttribute('aria-label',status.title);}
+    const status=get('homeAIStatus');if(status){status.textContent=LiveAI.statusText;status.title='模型负责解释，培养数值与对照来自本地教学模型。';status.setAttribute('aria-label',status.title);}
     const input=get('homeAssistantInput');if(input){input.placeholder=firstRecord?.colonies?.length?'问萤萤：我的菌落现在怎么样？':'问萤萤：帮我开始第一皿';input.maxLength=280;}
+    document.querySelectorAll('.home-ai-connection').forEach(node=>node.textContent=LiveAI.statusText);
     updateStale();
   }
   function init() {
     if(initialized)return;initialized=true;
     const form=get('homeAssistantForm');
-    if(form)form.addEventListener('submit',event=>{event.preventDefault();const input=get('homeAssistantInput');const value=input?.value.trim();if(value){ask(value);input.value='';}});
+    if(form)form.addEventListener('submit',event=>{event.preventDefault();const input=get('homeAssistantInput');const value=input?.value.trim();if(value&&!LiveAI.busy){ask(value);input.value='';}});
     document.querySelectorAll('[data-home-ask]').forEach(button=>{
       button.type='button';button.setAttribute('aria-controls','homeAssistantReply');button.setAttribute('aria-expanded','false');button.addEventListener('click',()=>ask(button.dataset.homeAsk));
     });
@@ -318,5 +331,5 @@ const HomeAssistant = (() => {
     document.addEventListener('keydown',event=>{if(opened&&event.key==='Escape'){event.preventDefault();event.stopPropagation();close({focus:true});}});
     ensureWorkspace();render();
   }
-  return {init,render,open,ask,close,describe,get isOpen(){return opened;}};
+  return {init,render,open,ask,close,describe,prepare:text=>describe(detect(text),firstRecord,text),get isOpen(){return opened;}};
 })();

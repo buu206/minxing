@@ -5,7 +5,8 @@
   "description": "皿星：面向学生的虚拟微生物培养交互原型",
   "scripts": {
     "build": "node src/build.cjs colony.html",
-    "preview": "python3 -m http.server 18778 --bind 127.0.0.1"
+    "preview": "python3 -m http.server 18778 --bind 127.0.0.1",
+    "start": "python3 server.py"
   },
   "devDependencies": {
     "esbuild": "0.25.12"

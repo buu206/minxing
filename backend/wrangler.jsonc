@@ -1,0 +1,18 @@
+{
+  "name": "minxing-ai",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-11-09",
+  "account_id": "44b43c410230bef3aea9e5812e1eff61",
+  "workers_dev": true,
+  "observability": {
+    "enabled": false
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "minxing-ai-quotas",
+      "database_id": "bd5b0da5-07de-4a7c-9e93-4a35aa205969",
+      "migrations_dir": "drizzle"
+    }
+  ]
+}
