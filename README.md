@@ -6,7 +6,7 @@
 
 **当前阶段：在线真实模型试用。首页和培养室通过云端 Cloudflare Worker 调用 Qwen，读取提问时的培养快照。培养数值、推荐配置和条件试算仍由本地教学程序提供，不代表真实实验测量或经验证的生物学预测。**
 
-![皿星首页](docs/screenshots/home-desktop.png)
+![皿星首页](docs/screenshots/home-desktop.png?v=20261110-clean)
 
 ## 版本说明
 
