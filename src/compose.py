@@ -20,7 +20,7 @@ image='data:image/png;base64,'+base64.b64encode((w/'colony-landscape.png').read_
 asset='const COLONY_LANDSCAPE='+json.dumps(image)+';\n'
 block('// The home assistant is an explicit functional demo.','HomeLanding.init();',file('live-ai.js')+'\n'+file('assistant.js')+'\n'+asset+file('life-visual.js')+'\n'+file('entry-constellation.js')+'\n'+file('intro.js')+'\n'+file('home.js'))
 replace("button.append(img,document.createTextNode(sp.name));button.onclick=()=>{appNavigate('dex');selectDexSpecimen(sp.id);};wall.append(button);","button.dataset.homeSpecies=sp.id;button.append(img,document.createTextNode(sp.name));button.onclick=()=>{appNavigate('dex');selectDexSpecimen(sp.id);};wall.append(button);")
-replace('<script type="importmap">',file('boot.html')+'\n<script type="importmap">')
+replace('<script type="importmap">','<script id="minxingAnalytics">\n'+file('analytics.js')+'\n</script>\n'+file('boot.html')+'\n<script type="importmap">')
 replace("const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });","const renderer = (() => { try { return new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }); } catch(error) { window.__minxingBoot.fail(new Error('WebGL initialization failed')); throw error; } })();")
 replace('<link rel="stylesheet" href="https://fonts.googleapis.com/','<link rel="stylesheet" media="print" onload="this.media=\'all\'" href="https://fonts.googleapis.com/')
 replace('\n</script>\n</body>','\nLiveAI.init();\nwindow.__minxingBoot.ready();\n</script>\n</body>')

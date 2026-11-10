@@ -3,7 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build:admin": "node scripts/build-admin.mjs",
+    "pretest": "npm run build:admin",
     "test": "node --test test/*.test.js",
+    "predeploy": "npm run build:admin",
     "deploy": "wrangler deploy",
     "dev": "wrangler dev"
   },

@@ -1775,7 +1775,7 @@ function finishPlanting(commit) {
   if (commit) {
     advanceFirstDish(Date.now());
     appSeedPoints(point).forEach(seed=>colonies.push(makeColony(selected, seed.gx, seed.gy, (firstRecord?.method || 'point')!=='point')));
-    if(firstActive){lifeCaptureRuntime();appLog('inoculation','接种 '+SP[selected].name);}
+    if(firstActive){lifeCaptureRuntime();appLog('inoculation','接种 '+SP[selected].name);window.HomeAnalytics?.track('culture_started');}
     dirty = true;
     updateColonyChoices();
     syncDiscoveryControls();

@@ -9,6 +9,7 @@ const LiveAI=(()=>{
   }
   function requestBody(message,facts){
     const payload={message,context:context(facts),history:history.slice(-12)};
+    const analytics=window.HomeAnalytics?.context();if(analytics)payload.analytics=analytics;
     while(payload.history.length&&new TextEncoder().encode(JSON.stringify(payload)).length>19000)payload.history.splice(0,2);
     return JSON.stringify(payload);
   }

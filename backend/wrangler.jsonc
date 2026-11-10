@@ -4,6 +4,7 @@
   "compatibility_date": "2026-11-09",
   "account_id": "44b43c410230bef3aea9e5812e1eff61",
   "workers_dev": true,
+  "preview_urls": false,
   "observability": {
     "enabled": false
   },
